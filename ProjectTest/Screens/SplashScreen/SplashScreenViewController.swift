@@ -9,13 +9,32 @@ import UIKit
 import Network
 
 class SplashScreenViewController: UIViewController {
+    private let loadingSpinner = SpinnerLoader(color: .white, size: .normal)
+    private let warningBanner = WarningBanner(title: "Проверьте подключение к интернету")
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.blue
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+        view.backgroundColor = UIColor(hex: "#196CFC")
+        bindViews()
+        setupLayout()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             self.checkInternetConnection()
         }
+    }
+    
+    private func bindViews() {
+        view.addSubview(loadingSpinner)
+        view.addSubview(warningBanner)
+    }
+    
+    func setupLayout() {
+        NSLayoutConstraint.activate([
+            warningBanner.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            warningBanner.topAnchor.constraint(equalTo: view.topAnchor, constant: 80),
+            
+            loadingSpinner.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingSpinner.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -160)
+        ])
     }
     
     private func checkInternetConnection() {

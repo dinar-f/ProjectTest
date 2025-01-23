@@ -1,39 +1,33 @@
 //
-//  PasswordUpdateViewController.swift
+//  SamlLoginViewController.swift
 //  ProjectTest
 //
-//  Created by Dinar on 12.01.2025.
+//  Created by Dinar on 19.01.2025.
 //
+
 import UIKit
 
-final class PasswordUpdateViewController: UIViewController {
+class SamlLoginViewController: UIViewController {
     private let mainLabel: UILabel = {
         let label = UILabel()
-        label.text = "Обновление пароля"
+        label.text = "Вход через SAML SSO"
         label.font = UIFont.systemFont(ofSize: 22, weight: .semibold)
         label.textColor = .black
         return label
     }()
     
+    private var buttonBottomConstraint = NSLayoutConstraint()
+    
     private lazy var closeButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: "cross"), for: .normal)
-        button.addTarget(self, action: #selector (closePasswordUpdateView), for: .touchUpInside)
+        button.addTarget(self, action: #selector (closeSamlLoginView), for: .touchUpInside)
         return button
     }()
     
-    private let infoLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Введите адрес электронной почты,\nмы отправим на неё ссылку для\nобновления пароля."
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .darkGray
-        label.numberOfLines = 3
-        return label
-    }()
+    private let domainTextField = TextField(type: .domain)
+    private let sendButton = BaseButton(title: "Продолжить")
     
-    private let emailTextField = TextField(type: .email)
-    private let sendButton = BaseButton(title: "Отправить")
-
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
@@ -42,11 +36,10 @@ final class PasswordUpdateViewController: UIViewController {
         setupKeyboardObservers()
     }
     
-    func addSubviews() {
-        view.addSubview(closeButton)
+    func addSubviews(){
         view.addSubview(mainLabel)
-        view.addSubview(emailTextField)
-        view.addSubview(infoLabel)
+        view.addSubview(closeButton)
+        view.addSubview(domainTextField)
         view.addSubview(sendButton)
     }
     
@@ -59,7 +52,6 @@ final class PasswordUpdateViewController: UIViewController {
         if let userInfo = notification.userInfo,
            let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
             let keyboardHeight = keyboardFrame.height
-            
             sendButton.transform = CGAffineTransform(translationX: 0, y: -keyboardHeight + 16)
         }
     }
@@ -72,12 +64,12 @@ final class PasswordUpdateViewController: UIViewController {
         NotificationCenter.default.removeObserver(self)
     }
     
-    func setupLayout() {
+    func setupLayout(){
         mainLabel.translatesAutoresizingMaskIntoConstraints = false
         closeButton.translatesAutoresizingMaskIntoConstraints = false
-        infoLabel.translatesAutoresizingMaskIntoConstraints = false
         sendButton.translatesAutoresizingMaskIntoConstraints = false
-        
+//        buttonBottomConstraint.constant = -50
+//        buttonBottomConstraint = closeButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -50)
         NSLayoutConstraint.activate([
             closeButton.widthAnchor.constraint(equalToConstant: 16),
             closeButton.heightAnchor.constraint(equalToConstant: 16),
@@ -85,27 +77,20 @@ final class PasswordUpdateViewController: UIViewController {
             closeButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
             
             mainLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            mainLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            mainLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 52),
+            mainLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 50),
             
-            infoLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            infoLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            infoLabel.topAnchor.constraint(equalTo: mainLabel.bottomAnchor, constant: 12),
-            
-            emailTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            emailTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            emailTextField.topAnchor.constraint(equalTo: infoLabel.bottomAnchor, constant: 32),
+            domainTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            domainTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            domainTextField.topAnchor.constraint(equalTo: mainLabel.bottomAnchor, constant: 32),
             
             sendButton.heightAnchor.constraint(equalToConstant: 56),
-            sendButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -30),
             sendButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             sendButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            sendButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -30)
         ])
     }
-}
-
-@objc private extension PasswordUpdateViewController {
-    func closePasswordUpdateView() {
+    
+    @objc private func closeSamlLoginView() {
         dismiss(animated: true, completion: nil)
     }
 }
