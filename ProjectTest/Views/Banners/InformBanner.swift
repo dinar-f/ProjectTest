@@ -74,6 +74,7 @@ extension InformBanner {
     
     private func setupLayout() {
         translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
             iconView.widthAnchor.constraint(equalToConstant: 20),
             iconView.heightAnchor.constraint(equalToConstant: 20),

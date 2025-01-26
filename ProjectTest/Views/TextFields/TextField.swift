@@ -19,7 +19,7 @@ final class TextField: UITextField {
     // MARK: Private Properties
     private var viewType: TextFieldType = .email
     
-    private var viewState: TextFieldState = .normal {
+    var viewState: TextFieldState = .normal {
         didSet {
             configureAppearance()
         }
@@ -49,7 +49,7 @@ final class TextField: UITextField {
         configureAppearance()
         configureType()
         setupLayout()
-        delegate = self
+//        delegate = self
     }
     
     required init?(coder: NSCoder) {
@@ -72,21 +72,15 @@ final class TextField: UITextField {
     }
 }
 
-extension TextField: UITextFieldDelegate {
-    func textFieldDidBeginEditing(_ textField: UITextField) {
-        viewState = .active
-    }
-
-    func textFieldDidEndEditing(_ textField: UITextField) {
-//        validateInput()
-        viewState = .normal
-    }
-    
-//    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-//        validateInput() // Вызываем валидацию при каждом изменении текста
-//        return true
+//extension TextField: UITextFieldDelegate {
+//    func textFieldDidBeginEditing(_ textField: UITextField) {
+//        viewState = .active
 //    }
-}
+//
+//    func textFieldDidEndEditing(_ textField: UITextField) {
+//        viewState = .normal
+//    }
+//}
 
 // MARK: - Public Properties
 extension TextField {
@@ -157,21 +151,5 @@ extension TextField {
             placeholder = "Рабочий домен"
         }
     }
-    
-    private func validateInput() {
-        let regexPattern = "/^[aA]+$/"
-        let format = "SELF MATCHES %@"
-        let isValidEmail = NSPredicate(format: format, regexPattern).evaluate(with: text)
-        print(isValidEmail)
-        
-        if isValidEmail {
-            viewState = .normal
-            errorLabel.isHidden = true
-        } else {
-            viewState = .error
-            errorLabel.isHidden = false
-        }
-    }
 }
-
 

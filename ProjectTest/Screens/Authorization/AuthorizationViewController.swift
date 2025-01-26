@@ -8,18 +8,37 @@
 import UIKit
 
 class AuthorizationViewController: UIViewController {
-    private let mainLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 22, weight: .semibold)
-        label.text = "С возвращением!"
-        return label
-    }()
+    
+    private let scrollView = UIScrollView()
+    private let scrollViewContent = UIView()
+    
+    private let mainLabel = MainLabel(title: "С возвращением!", fontSize: 22, fontWeight: .semibold)
     
     private let subLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 13, weight: .regular)
         label.textColor = .lightGray
         label.text = "Войти с помощью"
+        return label
+    }()
+    
+    private let emailTextFieldErrorLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 13, weight: .regular)
+        label.text = "Почта введена некорректно"
+        label.textColor = .red
+        label.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let passwordTextFieldErrorLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 13, weight: .regular)
+        label.text = "Некорректный пароль"
+        label.textColor = .red
+        label.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
@@ -61,25 +80,29 @@ class AuthorizationViewController: UIViewController {
         addSubviews()
         setupLayout()
         setupButtonTargets()
+        emailTextField.delegate = self
+        passwordTextField.delegate = self
+        loginButton.isEnabled = false
     }
     
     @objc private func openPasswordUpdateView() {
         let passwordUpdateVC = PasswordUpdateViewController()
-        present(passwordUpdateVC, animated: true, completion: nil)
+        let navigationController = UINavigationController(rootViewController: passwordUpdateVC)
+        navigationController.modalPresentationStyle = .popover
+        present(navigationController, animated: true, completion: nil)
     }
     
     @objc private func openQrLoginView() {
         let qrLoginVC = QrLoginViewController()
-        present(qrLoginVC, animated: true, completion: nil)
+        let navigationController = UINavigationController(rootViewController: qrLoginVC)
+        navigationController.modalPresentationStyle = .popover
+        present(navigationController, animated: true, completion: nil)
     }
     
     @objc private func openPopup() {
         let popupVC = InformPopUp()
-        
-        // Настройка стиля представления
         popupVC.modalPresentationStyle = .overCurrentContext
         popupVC.modalTransitionStyle = .crossDissolve
-        
         present(popupVC, animated: true, completion: nil)
     }
     
@@ -103,23 +126,30 @@ class AuthorizationViewController: UIViewController {
     }
     
     func addSubviews() {
-        view.addSubview(mainLabel)
+        view.addSubview(scrollView)
+        scrollView.addSubview(scrollViewContent)
+        scrollViewContent.addSubview(mainLabel)
+        scrollViewContent.addSubview(formStackView)
         formStackView.addArrangedSubview(emailTextField)
+        formStackView.addArrangedSubview(emailTextFieldErrorLabel)
         formStackView.addArrangedSubview(passwordTextField)
+        formStackView.addArrangedSubview(passwordTextFieldErrorLabel)
         formStackView.addArrangedSubview(informBanner)
-        view.addSubview(formStackView)
-        view.addSubview(passwordResetButton)
-        view.addSubview(loginButton)
-        view.addSubview(subLabel)
+        scrollViewContent.addSubview(passwordResetButton)
+        scrollViewContent.addSubview(loginButton)
+        scrollViewContent.addSubview(subLabel)
+        scrollViewContent.addSubview(loginButtonsStackView)
         loginButtonsStackView.addArrangedSubview(samlButton)
         loginButtonsStackView.addArrangedSubview(qrButton)
-        view.addSubview(loginButtonsStackView)
+        scrollViewContent.addSubview(loginButtonsStackView)
         serviceButtonsStackView.addArrangedSubview(yandexButton)
         serviceButtonsStackView.addArrangedSubview(gosuslugiButton)
-        view.addSubview(serviceButtonsStackView)
+        scrollViewContent.addSubview(serviceButtonsStackView)
     }
     
     func setupLayout() {
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollViewContent.translatesAutoresizingMaskIntoConstraints = false
         mainLabel.translatesAutoresizingMaskIntoConstraints = false
         formStackView.translatesAutoresizingMaskIntoConstraints = false
         loginButton.translatesAutoresizingMaskIntoConstraints = false
@@ -128,8 +158,20 @@ class AuthorizationViewController: UIViewController {
         serviceButtonsStackView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            mainLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            mainLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 52),
+            
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            
+            scrollViewContent.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            scrollViewContent.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            scrollViewContent.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            scrollViewContent.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            scrollViewContent.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            
+            mainLabel.centerXAnchor.constraint(equalTo: scrollViewContent.centerXAnchor),
+            mainLabel.topAnchor.constraint(equalTo: scrollViewContent.topAnchor, constant: 18),
             
             formStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             formStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -153,7 +195,75 @@ class AuthorizationViewController: UIViewController {
             serviceButtonsStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             serviceButtonsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             serviceButtonsStackView.topAnchor.constraint(equalTo: loginButtonsStackView.bottomAnchor, constant: 16),
+            serviceButtonsStackView.bottomAnchor.constraint(equalTo: scrollViewContent.bottomAnchor, constant: -40),
+
         ])
     }
 }
 
+
+extension AuthorizationViewController: UITextFieldDelegate {
+    
+    func validateTextField(_ textField: UITextField, validationPattern: String, errorLabel: UILabel) -> Bool{
+        guard let text = textField.text else {
+            return false
+        }
+        let format = "SELF MATCHES %@"
+        let isValid = NSPredicate(format: format, validationPattern).evaluate(with: text)
+        errorLabel.isHidden = isValid
+        return isValid
+    }
+    
+    func updateLoginButtonState(isEmailValid: Bool, isPasswordValid: Bool) {
+    }
+    
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        switch textField {
+        case emailTextField:
+            emailTextField.viewState = .active
+        case passwordTextField:
+            passwordTextField.viewState = .active
+        default: break
+        }
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        var isEmailValid = false
+        var isPasswordValid = false
+        
+        switch textField {
+        case emailTextField:
+            isEmailValid = validateTextField(textField,
+                                             validationPattern: "[a-zA-Z0-9._]+@[a-zA-Z0-9]+\\.[a-zA-Z]{2,4}",
+                                             errorLabel: emailTextFieldErrorLabel)
+        case passwordTextField:
+            isPasswordValid = validateTextField(textField,
+                                                //                                                validationPattern: "[0-9]{11}",
+                                                validationPattern: "^(?=.*[A-Z])(?=.*\\d).{8,}$",
+                                                errorLabel: passwordTextFieldErrorLabel)
+        default: break
+        }
+        
+        print(isEmailValid && isPasswordValid)
+    }
+}
+
+
+//    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+//        var isEmailValid = false
+//        var isPasswordValid = false
+//
+//        switch textField {
+//        case emailTextField:
+//            isEmailValid = validateTextField(textField,
+//                                             validationPattern: "[a-zA-Z0-9._]+@[a-zA-Z0-9]+\\.[a-zA-Z]{2,4}",
+//                                             errorLabel: emailTextFieldErrorLabel)
+//        case passwordTextField:
+//            isPasswordValid = validateTextField(textField,
+//                                                validationPattern: "[0-9]{11}",
+//                                                errorLabel: passwordTextFieldErrorLabel)
+//        default: break
+//        }
+////        updateLoginButtonState(isEmailValid: isEmailValid, isPasswordValid: isPasswordValid)
+//        return true
+//    }

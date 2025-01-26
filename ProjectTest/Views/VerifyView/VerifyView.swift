@@ -26,24 +26,34 @@ final class VerifyView: UIView {
     
     override init (frame: CGRect) {
         super.init(frame: frame)
+        
         verifyTextFieldConfiguration()
         setupLayout()
-        verifyFields[0].becomeFirstResponder()
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: {self.verifyFields[0].becomeFirstResponder()}) //задержка
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+//    func showErroro(){
+//        
+//    }
+    
     func verifyTextFieldConfiguration() {
         for number in 0...3 {
             let textField = VerifyTextField()
             textField.tag = number
+//            if number == 0 {
+//                textField.becomeFirstResponder()
+//            }
             textField.fieldDelegate = self
+            textField.isUserInteractionEnabled = false
             verifyFields.append(textField)
             fieldsStack.addArrangedSubview(textField)
         }
         addSubview(fieldsStack)
+//        verifyFields[0].becomeFirstResponder()
     }
     
     func setupLayout() {
@@ -58,7 +68,7 @@ final class VerifyView: UIView {
         ])
     }
     
-    func getFieldsValue() ->String {
+    func getFieldsValue() -> String {
         var fieldsValue: String = ""
         verifyFields.forEach {
             fieldsValue.append($0.text ?? "")

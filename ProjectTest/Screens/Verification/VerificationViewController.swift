@@ -35,6 +35,7 @@ class VerificationViewController: UIViewController {
             print("ok")
         } else {
             print("error")
+//            verifyView.showEroor()
         }
     }
     

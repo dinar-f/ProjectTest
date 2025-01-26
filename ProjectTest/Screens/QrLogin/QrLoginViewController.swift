@@ -9,18 +9,14 @@ import UIKit
 
 class QrLoginViewController: UIViewController {
     
-    private let mainLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Авторизация через QR"
-        label.font = UIFont.systemFont(ofSize: 22, weight: .semibold)
-        label.textColor = .black
-        return label
-    }()
+    private let scrollView = UIScrollView()
+    private let scrollViewContent = UIView()
     
     private lazy var closeButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: "cross"), for: .normal)
         button.addTarget(self, action: #selector (closeQrLoginView), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     
@@ -28,12 +24,6 @@ class QrLoginViewController: UIViewController {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "qrLoginBanner")
         return imageView
-    }()
-    
-    private let mainButtonBackgroungView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .red
-        return view
     }()
     
     private let mainButton = BaseButton(title: "Сканировать QR-код")
@@ -45,43 +35,42 @@ class QrLoginViewController: UIViewController {
         stackView.spacing = 12
         return stackView
     }()
-    
-    private let contentStackView: UIStackView = {
-        let stackView = UIStackView(frame: .zero)
-        stackView.axis = .vertical
-        stackView.spacing = 24
-        return stackView
-    }()
-    
-    private let scrollView: UIScrollView = {
-        let scrollView = UIScrollView()
-        scrollView.backgroundColor = .red
-        return scrollView
-    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
+        setupNavigationBar()
         addSubviews()
         setupLayout()
     }
     
+    private func setupNavigationBar() {
+        title = "Авторизация через QR"
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.backgroundColor = .white
+        appearance.shadowColor = .clear
+        appearance.largeTitleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 24, weight: .semibold)]
+        appearance.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 17, weight: .semibold)]
+        
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        
+        let barButtonItem = UIBarButtonItem(customView: closeButton)
+        barButtonItem.customView?.widthAnchor.constraint(equalToConstant: 18).isActive = true
+        barButtonItem.customView?.heightAnchor.constraint(equalToConstant: 18).isActive = true
+        navigationItem.rightBarButtonItem = barButtonItem
+    }
+    
     func addSubviews(){
-        view.addSubview(mainLabel)
-        view.addSubview(closeButton)
-        contentStackView.addArrangedSubview(qrImageView)
-        createRuleItemViews()
-        contentStackView.addArrangedSubview(rulesListStackView)
-        contentStackView.addArrangedSubview(informBanner)
-        view.addSubview(contentStackView)
-        mainButtonBackgroungView.addSubview(mainButton)
-        view.addSubview(mainButtonBackgroungView)
-        
-        
-        scrollView.addSubview(contentStackView)
         view.addSubview(scrollView)
-        
-//        view.insertSubview(contentStackView, aboveSubview: mainButtonBackgroungView)
+        scrollView.addSubview(scrollViewContent)
+        scrollViewContent.addSubview(qrImageView)
+        scrollViewContent.addSubview(rulesListStackView)
+        createRuleItemViews()
+        scrollViewContent.addSubview(informBanner)
+        view.addSubview(mainButton)
     }
     
     func createRuleItemViews() {
@@ -93,66 +82,49 @@ class QrLoginViewController: UIViewController {
     }
     
     func setupLayout(){
-        mainLabel.translatesAutoresizingMaskIntoConstraints = false
-        closeButton.translatesAutoresizingMaskIntoConstraints = false
-        contentStackView.translatesAutoresizingMaskIntoConstraints = false
-        qrImageView.translatesAutoresizingMaskIntoConstraints = false
-        informBanner.translatesAutoresizingMaskIntoConstraints = false
-        rulesListStackView.translatesAutoresizingMaskIntoConstraints = false
-        mainButton.translatesAutoresizingMaskIntoConstraints = false
-        mainButtonBackgroungView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollViewContent.translatesAutoresizingMaskIntoConstraints = false
+        qrImageView.translatesAutoresizingMaskIntoConstraints = false
+        rulesListStackView.translatesAutoresizingMaskIntoConstraints = false
+        informBanner.translatesAutoresizingMaskIntoConstraints = false
+        mainButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo:  mainLabel.bottomAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: mainButtonBackgroungView.topAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor, constant: 0),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor ,constant: -88),
             
-            closeButton.widthAnchor.constraint(equalToConstant: 16),
-            closeButton.heightAnchor.constraint(equalToConstant: 16),
-            closeButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 18),
-            closeButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
+            scrollViewContent.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 10),
+            scrollViewContent.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            scrollViewContent.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            scrollViewContent.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            scrollViewContent.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
-            mainLabel.heightAnchor.constraint(equalToConstant: .init(28)),
-            mainLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            mainLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 56),
+            qrImageView.leadingAnchor.constraint(equalTo: scrollViewContent.leadingAnchor, constant: 16),
+            qrImageView.trailingAnchor.constraint(equalTo: scrollViewContent.trailingAnchor, constant: -16),
+            qrImageView.topAnchor.constraint(equalTo: scrollViewContent.topAnchor, constant: 0),
             
-            contentStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            contentStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            contentStackView.topAnchor.constraint(equalTo: mainLabel.bottomAnchor, constant: 24),
-          
-            mainButtonBackgroungView.heightAnchor.constraint(equalToConstant: 122),
-            mainButtonBackgroungView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            mainButtonBackgroungView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            mainButtonBackgroungView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0),
+            rulesListStackView.leadingAnchor.constraint(equalTo: scrollViewContent.leadingAnchor, constant: 16),
+            rulesListStackView.trailingAnchor.constraint(equalTo: scrollViewContent.trailingAnchor, constant: -16),
+            rulesListStackView.topAnchor.constraint(equalTo: qrImageView.bottomAnchor, constant: 24),
+            
+            informBanner.leadingAnchor.constraint(equalTo: scrollViewContent.leadingAnchor, constant: 16),
+            informBanner.trailingAnchor.constraint(equalTo: scrollViewContent.trailingAnchor, constant: -16),
+            informBanner.topAnchor.constraint(equalTo: rulesListStackView.bottomAnchor, constant: 24),
+            informBanner.bottomAnchor.constraint(equalTo: scrollViewContent.bottomAnchor, constant: -20),
             
             mainButton.heightAnchor.constraint(equalToConstant: 56),
-            mainButton.leadingAnchor.constraint(equalTo: mainButtonBackgroungView.leadingAnchor, constant: 16),
-            mainButton.rightAnchor.constraint(equalTo: mainButtonBackgroungView.rightAnchor, constant: -16),
-            mainButton.topAnchor.constraint(equalTo: mainButtonBackgroungView.topAnchor, constant: 16),
+            mainButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            mainButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            mainButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
+        
         ])
     }
     
     @objc private func closeQrLoginView() {
         dismiss(animated: true, completion: nil)
     }
-//    
-//    func createRuleItemViews() {
-//        let ruleItems = ViewModel().ruleItems
-//        for viewModel in ruleItems {
-//            let view = UIView()
-//            view.configure(with: viewModel)
-//            stackView.addArangedSubview(view)
-//        }
-//    }
-//    
-//    func setupSubviews() {
-//        stackView.addArangedSubview(titleLabel)
-//        stackView.addArangedSubview(imageView)
-//        createRuleItemViews()
-//        
-//    }
 }
 
 

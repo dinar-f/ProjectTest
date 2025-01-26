@@ -9,6 +9,8 @@ import UIKit
 
 final class WarningBanner: UIView {
     
+    private var buttonHandler: (() -> Void)?
+    
 // MARK: Private Properties
     private let iconView = UIImageView()
     
@@ -21,17 +23,19 @@ final class WarningBanner: UIView {
         return label
     }()
     
-    private let mainButton: UIButton = {
+    private lazy var mainButton: UIButton = {
         let button = UIButton()
         button.setTitle("Повторить", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
+        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         return button
     }()
     
 // MARK: - Init
-    init(title: String) {
+    init(title: String, action: @escaping (() -> Void)) {
         super.init(frame: .zero)
+        self.buttonHandler = action
         addSubviews()
         setupView(title: title)
         setupLayout()
@@ -41,6 +45,37 @@ final class WarningBanner: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    @objc private func buttonTapped() {
+        if let action = buttonHandler {
+            action()
+            close()
+        }
+    }
+    
+    func show(in view: UIView) {
+        alpha = 0
+        view.addSubview(self)
+        
+        translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            topAnchor.constraint(equalTo: view.topAnchor, constant: 44),
+        ])
+        
+        UIView.animate(withDuration: 0.5) {
+            self.alpha = 1
+            self.center.y = 50
+        }
+    }
+    
+    func close() {
+        UIView.animate(withDuration: 0.5, animations: {
+            self.alpha = 0
+        }) { _ in
+            self.removeFromSuperview()
+        }
+    }
 }
 
 // MARK: - Private Methods
@@ -64,9 +99,8 @@ private extension WarningBanner {
         iconView.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         mainButton.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
-            widthAnchor.constraint(equalToConstant: 343),
-            
             iconView.widthAnchor.constraint(equalToConstant: 20),
             iconView.heightAnchor.constraint(equalToConstant: 20),
             iconView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),

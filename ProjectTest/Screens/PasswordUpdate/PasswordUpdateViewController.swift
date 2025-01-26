@@ -7,13 +7,6 @@
 import UIKit
 
 final class PasswordUpdateViewController: UIViewController {
-    private let mainLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Обновление пароля"
-        label.font = UIFont.systemFont(ofSize: 22, weight: .semibold)
-        label.textColor = .black
-        return label
-    }()
     
     private lazy var closeButton: UIButton = {
         let button = UIButton()
@@ -37,60 +30,50 @@ final class PasswordUpdateViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
+        setupNavigationBar()
         addSubviews()
         setupLayout()
-        setupKeyboardObservers()
+        registerKeyboardNotifications()
     }
     
     func addSubviews() {
-        view.addSubview(closeButton)
-        view.addSubview(mainLabel)
         view.addSubview(emailTextField)
         view.addSubview(infoLabel)
         view.addSubview(sendButton)
-    }
-    
-    private func setupKeyboardObservers() {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
-    }
-    
-    @objc private func keyboardWillShow(notification: NSNotification) {
-        if let userInfo = notification.userInfo,
-           let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-            let keyboardHeight = keyboardFrame.height
-            
-            sendButton.transform = CGAffineTransform(translationX: 0, y: -keyboardHeight + 16)
-        }
-    }
-    
-    @objc private func keyboardWillHide(notification: NSNotification) {
-        sendButton.transform = .identity
     }
     
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
     
+    private func setupNavigationBar() {
+        title = "Обновление пароля"
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.backgroundColor = .white
+        appearance.shadowColor = .clear
+        appearance.largeTitleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 24, weight: .semibold)]
+        appearance.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 17, weight: .semibold)]
+        
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        
+        let barButtonItem = UIBarButtonItem(customView: closeButton)
+        barButtonItem.customView?.widthAnchor.constraint(equalToConstant: 18).isActive = true
+        barButtonItem.customView?.heightAnchor.constraint(equalToConstant: 18).isActive = true
+        navigationItem.rightBarButtonItem = barButtonItem
+    }
+
+    
     func setupLayout() {
-        mainLabel.translatesAutoresizingMaskIntoConstraints = false
-        closeButton.translatesAutoresizingMaskIntoConstraints = false
         infoLabel.translatesAutoresizingMaskIntoConstraints = false
         sendButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            closeButton.widthAnchor.constraint(equalToConstant: 16),
-            closeButton.heightAnchor.constraint(equalToConstant: 16),
-            closeButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 18),
-            closeButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -18),
-            
-            mainLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            mainLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            mainLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 52),
-            
             infoLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             infoLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            infoLabel.topAnchor.constraint(equalTo: mainLabel.bottomAnchor, constant: 12),
+            infoLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 112),
             
             emailTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             emailTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -107,5 +90,32 @@ final class PasswordUpdateViewController: UIViewController {
 @objc private extension PasswordUpdateViewController {
     func closePasswordUpdateView() {
         dismiss(animated: true, completion: nil)
+    }
+}
+
+
+// MARK: - Keyboard Notification
+extension PasswordUpdateViewController {
+    private func registerKeyboardNotifications() {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(keyboardWillShow),
+                                               name: UIResponder.keyboardWillShowNotification,
+                                               object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(keyboardWillHide),
+                                               name: UIResponder.keyboardWillHideNotification,
+                                               object: nil)
+    }
+    
+    @objc private func keyboardWillShow(notification: NSNotification) {
+        if let userInfo = notification.userInfo,
+           let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+            let keyboardHeight = keyboardFrame.height
+            sendButton.transform = CGAffineTransform(translationX: 0, y: -keyboardHeight + 16)
+        }
+    }
+    
+    @objc private func keyboardWillHide(notification: NSNotification) {
+        sendButton.transform = .identity
     }
 }

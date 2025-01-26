@@ -28,7 +28,39 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
-
-
 }
 
+
+//extension AppDelegate {
+//    func openWelcomeVC(window: UIWindow?) {
+//        if let window = window {
+//            self.window = window
+//        }
+//        guard let window = self.window else {
+//            self.window = UIWindow(frame: UIScreen.main.bounds)
+//            return self.openWelcomeVC(window: nil)
+//        }
+//        DispatchQueue.main.async {
+//            let viewController = AuthorizationViewController()
+//            let navigationController = UINavigationController(rootViewController: viewController)
+//            window.rootViewController = navigationController
+//            window.makeKeyAndVisible()
+//        }
+//    }
+    
+//    func openMainVC(window: UIWindow?) {
+//        if let window = window {
+//            self.window = window
+//        }
+//        guard let window = self.window else {
+//            self.window = UIWindow(frame: UIScreen.main.bounds)
+//            return self.openMainVC(window: nil)
+//        }
+//        DispatchQueue.main.async {
+//            let viewController = MainViewController()
+//            let navigationController = UINavigationController(rootViewController: viewController)
+//            window.rootViewController = navigationController
+//            window.makeKeyAndVisible()
+//        }
+//    }
+//}
