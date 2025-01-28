@@ -48,12 +48,12 @@ final class VerifyView: UIView {
 //                textField.becomeFirstResponder()
 //            }
             textField.fieldDelegate = self
-            textField.isUserInteractionEnabled = false
+//            textField.isUserInteractionEnabled = false
             verifyFields.append(textField)
             fieldsStack.addArrangedSubview(textField)
         }
         addSubview(fieldsStack)
-//        verifyFields[0].becomeFirstResponder()
+        verifyFields[0].becomeFirstResponder()
     }
     
     func setupLayout() {

@@ -26,6 +26,7 @@ class VerificationViewController: UIViewController {
         setupLayout()
         verifyView.verifyDelegate = self
         spinnerLoader.isHidden = true
+        navigationItem.setHidesBackButton(true, animated: false)
     }
     
     private func checkCode() {

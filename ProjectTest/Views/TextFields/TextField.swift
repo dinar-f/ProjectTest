@@ -6,7 +6,13 @@
 //
 import UIKit
 
+protocol TextFieldProtocol: AnyObject {
+    func check()
+}
+
 final class TextField: UITextField {
+    
+    weak var textFieldDelegate: TextFieldProtocol?
     
     override var isSecureTextEntry: Bool {
         didSet {
@@ -15,6 +21,8 @@ final class TextField: UITextField {
             : UIImage(named: "crossedEye")
         }
     }
+    
+    var isValid = false
     
     // MARK: Private Properties
     private var viewType: TextFieldType = .email
@@ -49,7 +57,7 @@ final class TextField: UITextField {
         configureAppearance()
         configureType()
         setupLayout()
-//        delegate = self
+        delegate = self
     }
     
     required init?(coder: NSCoder) {
@@ -72,15 +80,37 @@ final class TextField: UITextField {
     }
 }
 
-//extension TextField: UITextFieldDelegate {
-//    func textFieldDidBeginEditing(_ textField: UITextField) {
-//        viewState = .active
-//    }
-//
-//    func textFieldDidEndEditing(_ textField: UITextField) {
-//        viewState = .normal
-//    }
-//}
+extension TextField: UITextFieldDelegate  {
+    
+    func validateTextField(_ textField: UITextField, validationPattern: String){
+        guard let text = textField.text else {
+            return
+        }
+        let format = "SELF MATCHES %@"
+        let isValueValid = NSPredicate(format: format, validationPattern).evaluate(
+            with: text
+        )
+        viewState = isValueValid ? .normal : .error
+        isValid = isValueValid
+        textFieldDelegate?.check()
+    }
+    
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        viewState = .active
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        switch viewType {
+        case .email:
+            validateTextField(textField,
+                              validationPattern: "[a-zA-Z0-9._]+@[a-zA-Z0-9]+\\.[a-zA-Z]{2,4}")
+        case .password:
+            validateTextField(textField,
+                              validationPattern: "^(?=.*[A-Z])(?=.*\\d).{8,}$")
+        default: break
+        }
+    }
+}
 
 // MARK: - Public Properties
 extension TextField {

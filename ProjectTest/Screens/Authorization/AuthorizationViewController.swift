@@ -12,6 +12,8 @@ class AuthorizationViewController: UIViewController {
     private let scrollView = UIScrollView()
     private let scrollViewContent = UIView()
     
+//    var isValidValues = (email: false, password: false)
+    
     private let mainLabel = MainLabel(title: "С возвращением!", fontSize: 22, fontWeight: .semibold)
     
     private let subLabel: UILabel = {
@@ -80,9 +82,10 @@ class AuthorizationViewController: UIViewController {
         addSubviews()
         setupLayout()
         setupButtonTargets()
-        emailTextField.delegate = self
-        passwordTextField.delegate = self
+        emailTextField.textFieldDelegate = self
+        passwordTextField.textFieldDelegate = self
         loginButton.isEnabled = false
+        navigationItem.setHidesBackButton(true, animated: false)
     }
     
     @objc private func openPasswordUpdateView() {
@@ -106,6 +109,13 @@ class AuthorizationViewController: UIViewController {
         present(popupVC, animated: true, completion: nil)
     }
     
+    @objc private func openVerifyScreen() {
+        let verifyVC = VerificationViewController()
+        if let navigationController = navigationController {
+            navigationController.pushViewController(verifyVC, animated: true)
+        }
+    }
+    
     @objc private func openSamlLoginView() {
         let samlLoginVC = SamlLoginViewController()
         if let sheet = samlLoginVC.sheetPresentationController {
@@ -123,6 +133,7 @@ class AuthorizationViewController: UIViewController {
         passwordResetButton.addTarget(self, action: #selector(openPasswordUpdateView), for: .touchUpInside)
         qrButton.addTarget(self, action: #selector(openQrLoginView), for: .touchUpInside)
         samlButton.addTarget(self, action: #selector(openSamlLoginView), for: .touchUpInside)
+        loginButton.addTarget(self, action: #selector(openVerifyScreen), for: .touchUpInside)
     }
     
     func addSubviews() {
@@ -201,69 +212,55 @@ class AuthorizationViewController: UIViewController {
     }
 }
 
-
-extension AuthorizationViewController: UITextFieldDelegate {
-    
-    func validateTextField(_ textField: UITextField, validationPattern: String, errorLabel: UILabel) -> Bool{
-        guard let text = textField.text else {
-            return false
+extension AuthorizationViewController: TextFieldProtocol {
+    func check() {
+        emailTextFieldErrorLabel.isHidden = emailTextField.isValid
+        passwordTextFieldErrorLabel.isHidden = passwordTextField.isValid
+        if emailTextField.isValid == true && passwordTextField.isValid == true {
+            loginButton.isEnabled = true
         }
-        let format = "SELF MATCHES %@"
-        let isValid = NSPredicate(format: format, validationPattern).evaluate(with: text)
-        errorLabel.isHidden = isValid
-        return isValid
-    }
-    
-    func updateLoginButtonState(isEmailValid: Bool, isPasswordValid: Bool) {
-    }
-    
-    func textFieldDidBeginEditing(_ textField: UITextField) {
-        switch textField {
-        case emailTextField:
-            emailTextField.viewState = .active
-        case passwordTextField:
-            passwordTextField.viewState = .active
-        default: break
-        }
-    }
-    
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        var isEmailValid = false
-        var isPasswordValid = false
-        
-        switch textField {
-        case emailTextField:
-            isEmailValid = validateTextField(textField,
-                                             validationPattern: "[a-zA-Z0-9._]+@[a-zA-Z0-9]+\\.[a-zA-Z]{2,4}",
-                                             errorLabel: emailTextFieldErrorLabel)
-        case passwordTextField:
-            isPasswordValid = validateTextField(textField,
-                                                //                                                validationPattern: "[0-9]{11}",
-                                                validationPattern: "^(?=.*[A-Z])(?=.*\\d).{8,}$",
-                                                errorLabel: passwordTextFieldErrorLabel)
-        default: break
-        }
-        
-        print(isEmailValid && isPasswordValid)
     }
 }
 
-
-//    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-//        var isEmailValid = false
-//        var isPasswordValid = false
-//
+//extension AuthorizationViewController: UITextFieldDelegate {
+//    
+//    func validateTextField(_ textField: UITextField, validationPattern: String, errorLabel: UILabel) -> Bool{
+//        guard let text = textField.text else {
+//            return false
+//        }
+//        let format = "SELF MATCHES %@"
+//        let isValid = NSPredicate(format: format, validationPattern).evaluate(with: text)
+//        errorLabel.isHidden = isValid
+//        return isValid
+//    }
+//    
+//    func updateLoginButtonState() {
+//        print(isValidValues)
+//    }
+//    
+//    func textFieldDidBeginEditing(_ textField: UITextField) {
 //        switch textField {
 //        case emailTextField:
-//            isEmailValid = validateTextField(textField,
-//                                             validationPattern: "[a-zA-Z0-9._]+@[a-zA-Z0-9]+\\.[a-zA-Z]{2,4}",
-//                                             errorLabel: emailTextFieldErrorLabel)
+//            emailTextField.viewState = .active
 //        case passwordTextField:
-//            isPasswordValid = validateTextField(textField,
-//                                                validationPattern: "[0-9]{11}",
-//                                                errorLabel: passwordTextFieldErrorLabel)
+//            passwordTextField.viewState = .active
 //        default: break
 //        }
-////        updateLoginButtonState(isEmailValid: isEmailValid, isPasswordValid: isPasswordValid)
-//        return true
 //    }
+//    
+//    func textFieldDidEndEditing(_ textField: UITextField) {
+//        switch textField {
+//        case emailTextField:
+//            isValidValues.email = validateTextField(textField,
+//                                             validationPattern: "[a-zA-Z0-9._]+@[a-zA-Z0-9]+\\.[a-zA-Z]{2,4}",
+//                                             errorLabel: emailTextFieldErrorLabel)
+//            updateLoginButtonState()
+//        case passwordTextField:
+//            isValidValues.password = validateTextField(textField,
+//                                                validationPattern: "^(?=.*[A-Z])(?=.*\\d).{8,}$",
+//                                                errorLabel: passwordTextFieldErrorLabel)
+//            updateLoginButtonState()
+//        default: break
+//        }
+//    }
+//}
