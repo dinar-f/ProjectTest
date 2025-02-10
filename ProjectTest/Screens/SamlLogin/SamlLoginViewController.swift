@@ -7,7 +7,8 @@
 
 import UIKit
 
-class SamlLoginViewController: UIViewController {
+class SamlLoginViewController: BaseViewController {
+    
     private let mainLabel: UILabel = {
         let label = UILabel()
         label.text = "Вход через SAML SSO"
@@ -26,14 +27,12 @@ class SamlLoginViewController: UIViewController {
     }()
     
     private let domainTextField = TextField(type: .domain)
-    private let sendButton = BaseButton(title: "Продолжить")
+    private let sendButton = BaseButton(title: "Продолжить", type: .primary)
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
         addSubviews()
         setupLayout()
-        registerKeyboardNotifications()
     }
     
     func addSubviews(){
@@ -43,8 +42,9 @@ class SamlLoginViewController: UIViewController {
         view.addSubview(sendButton)
     }
     
-    deinit {
-        NotificationCenter.default.removeObserver(self)
+    override func adjustForKeyboard(show: Bool, keyboardHeight: CGFloat) {
+        let offset = show ? -keyboardHeight + 16 : 0
+        sendButton.transform = CGAffineTransform(translationX: 0, y: offset)
     }
     
     func setupLayout(){
@@ -52,7 +52,6 @@ class SamlLoginViewController: UIViewController {
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         sendButton.translatesAutoresizingMaskIntoConstraints = false
         domainTextField.translatesAutoresizingMaskIntoConstraints = false
-        buttonBottomConstraint = sendButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16)
         
         NSLayoutConstraint.activate([
             closeButton.widthAnchor.constraint(equalToConstant: 16),
@@ -70,7 +69,7 @@ class SamlLoginViewController: UIViewController {
             sendButton.heightAnchor.constraint(equalToConstant: 56),
             sendButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             sendButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            buttonBottomConstraint,
+            sendButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -26),
         ])
     }
     
@@ -78,30 +77,3 @@ class SamlLoginViewController: UIViewController {
         dismiss(animated: true, completion: nil)
     }
 }
-
-
-extension SamlLoginViewController {
-    private func registerKeyboardNotifications() {
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(keyboardWillShow),
-                                               name: UIResponder.keyboardWillShowNotification,
-                                               object: nil)
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(keyboardWillHide),
-                                               name: UIResponder.keyboardWillHideNotification,
-                                               object: nil)
-    }
-    
-    @objc private func keyboardWillShow(notification: NSNotification) {
-        if let userInfo = notification.userInfo,
-           let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-            let keyboardHeight = keyboardFrame.height
-            buttonBottomConstraint.constant = -keyboardHeight - 16
-        }
-    }
-    
-    @objc private func keyboardWillHide(notification: NSNotification) {
-        buttonBottomConstraint.constant = -16
-    }
-}
-

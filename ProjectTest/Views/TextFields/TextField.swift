@@ -6,13 +6,9 @@
 //
 import UIKit
 
-protocol TextFieldProtocol: AnyObject {
-    func check()
-}
-
 final class TextField: UITextField {
     
-    weak var textFieldDelegate: TextFieldProtocol?
+    var isValid = false
     
     override var isSecureTextEntry: Bool {
         didSet {
@@ -21,8 +17,6 @@ final class TextField: UITextField {
             : UIImage(named: "crossedEye")
         }
     }
-    
-    var isValid = false
     
     // MARK: Private Properties
     private var viewType: TextFieldType = .email
@@ -40,16 +34,6 @@ final class TextField: UITextField {
         return imageview
     }()
     
-    private let errorLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor(hex: "#F54545")
-        label.text = "Неверный формат"
-        label.font = .systemFont(ofSize: 13)
-        label.isHidden = true
-        return label
-    }()
-    
-    // MARK: - Init
     init(type: TextFieldType) {
         super.init(frame: .zero)
         self.viewType = type
@@ -57,7 +41,6 @@ final class TextField: UITextField {
         configureAppearance()
         configureType()
         setupLayout()
-        delegate = self
     }
     
     required init?(coder: NSCoder) {
@@ -80,38 +63,6 @@ final class TextField: UITextField {
     }
 }
 
-extension TextField: UITextFieldDelegate  {
-    
-    func validateTextField(_ textField: UITextField, validationPattern: String){
-        guard let text = textField.text else {
-            return
-        }
-        let format = "SELF MATCHES %@"
-        let isValueValid = NSPredicate(format: format, validationPattern).evaluate(
-            with: text
-        )
-        viewState = isValueValid ? .normal : .error
-        isValid = isValueValid
-        textFieldDelegate?.check()
-    }
-    
-    func textFieldDidBeginEditing(_ textField: UITextField) {
-        viewState = .active
-    }
-    
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        switch viewType {
-        case .email:
-            validateTextField(textField,
-                              validationPattern: "[a-zA-Z0-9._]+@[a-zA-Z0-9]+\\.[a-zA-Z]{2,4}")
-        case .password:
-            validateTextField(textField,
-                              validationPattern: "^(?=.*[A-Z])(?=.*\\d).{8,}$")
-        default: break
-        }
-    }
-}
-
 // MARK: - Public Properties
 extension TextField {
     enum TextFieldType {
@@ -127,7 +78,7 @@ extension TextField {
     }
 }
 
-    // MARK: - Private Methods
+// MARK: - Private Methods
 extension TextField {
     @objc func togglePasswordVisibility() {
         isSecureTextEntry.toggle()
@@ -139,19 +90,14 @@ extension TextField {
         layer.cornerRadius = 12
         layer.borderWidth = 1
         layer.borderColor = UIColor(hex: "#E0E0E0")?.cgColor
-        addSubview(errorLabel)
         imageview.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(togglePasswordVisibility)))
     }
     
     private func setupLayout() {
         translatesAutoresizingMaskIntoConstraints = false
-        errorLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: 56),
-            
-            errorLabel.topAnchor.constraint(equalTo: bottomAnchor, constant: 4),
-            errorLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
         ])
     }
     

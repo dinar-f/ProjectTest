@@ -6,7 +6,7 @@
 //
 import UIKit
 
-final class PasswordUpdateViewController: UIViewController {
+final class PasswordUpdateViewController: BaseViewController {
     
     private lazy var closeButton: UIButton = {
         let button = UIButton()
@@ -25,25 +25,24 @@ final class PasswordUpdateViewController: UIViewController {
     }()
     
     private let emailTextField = TextField(type: .email)
-    private let sendButton = BaseButton(title: "Отправить")
+    private let sendButton = BaseButton(title: "Отправить", type: .primary)
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
         setupNavigationBar()
         addSubviews()
         setupLayout()
-        registerKeyboardNotifications()
+    }
+    
+    override func adjustForKeyboard(show: Bool, keyboardHeight: CGFloat) {
+        let offset = show ? -keyboardHeight + 16 : 0
+        sendButton.transform = CGAffineTransform(translationX: 0, y: offset)
     }
     
     func addSubviews() {
         view.addSubview(emailTextField)
         view.addSubview(infoLabel)
         view.addSubview(sendButton)
-    }
-    
-    deinit {
-        NotificationCenter.default.removeObserver(self)
     }
     
     private func setupNavigationBar() {
@@ -90,32 +89,5 @@ final class PasswordUpdateViewController: UIViewController {
 @objc private extension PasswordUpdateViewController {
     func closePasswordUpdateView() {
         dismiss(animated: true, completion: nil)
-    }
-}
-
-
-// MARK: - Keyboard Notification
-extension PasswordUpdateViewController {
-    private func registerKeyboardNotifications() {
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(keyboardWillShow),
-                                               name: UIResponder.keyboardWillShowNotification,
-                                               object: nil)
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(keyboardWillHide),
-                                               name: UIResponder.keyboardWillHideNotification,
-                                               object: nil)
-    }
-    
-    @objc private func keyboardWillShow(notification: NSNotification) {
-        if let userInfo = notification.userInfo,
-           let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-            let keyboardHeight = keyboardFrame.height
-            sendButton.transform = CGAffineTransform(translationX: 0, y: -keyboardHeight + 16)
-        }
-    }
-    
-    @objc private func keyboardWillHide(notification: NSNotification) {
-        sendButton.transform = .identity
     }
 }

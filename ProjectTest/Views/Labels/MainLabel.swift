@@ -18,7 +18,7 @@ final class MainLabel: UILabel {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setupView(title: String, fontSize: CGFloat, fontWeight: UIFont.Weight) {
+    private func setupView(title: String, fontSize: CGFloat, fontWeight: UIFont.Weight) {
         font = .systemFont(ofSize: fontSize, weight: fontWeight)
         text = title
     }

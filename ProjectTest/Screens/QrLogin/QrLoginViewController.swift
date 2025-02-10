@@ -7,7 +7,7 @@
 
 import UIKit
 
-class QrLoginViewController: UIViewController {
+class QrLoginViewController: BaseViewController {
     
     private let scrollView = UIScrollView()
     private let scrollViewContent = UIView()
@@ -26,7 +26,7 @@ class QrLoginViewController: UIViewController {
         return imageView
     }()
     
-    private let mainButton = BaseButton(title: "Сканировать QR-код")
+    private let mainButton = BaseButton(title: "Сканировать QR-код", type: .primary)
     private let informBanner = InformBanner(viewModel: .init(type: .normal, title: "Данная опция возможна только в случае, если на компьютере вы авторизованы при помощи почты и пароля."))
     
     private let rulesListStackView: UIStackView = {
@@ -42,6 +42,11 @@ class QrLoginViewController: UIViewController {
         setupNavigationBar()
         addSubviews()
         setupLayout()
+        setupButtonTargets()
+    }
+    
+    private func setupButtonTargets() {
+        mainButton.addTarget(self, action: #selector(openQRScanner), for: .touchUpInside)
     }
     
     private func setupNavigationBar() {
@@ -117,16 +122,24 @@ class QrLoginViewController: UIViewController {
             mainButton.heightAnchor.constraint(equalToConstant: 56),
             mainButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             mainButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            mainButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
-        
+            mainButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -36),
         ])
-    }
-    
-    @objc private func closeQrLoginView() {
-        dismiss(animated: true, completion: nil)
     }
 }
 
+// MARK: - Navigation Handlers
+@objc extension QrLoginViewController {
+    
+    //Почему QRScannerViewController открывается как present, а не как обычный экран
+    private func openQRScanner() {
+        let qrScannerVC = QRScannerViewController()
+        navigationController?.pushViewController(qrScannerVC, animated: true)
+    }
+    
+    private func closeQrLoginView() {
+        dismiss(animated: true, completion: nil)
+    }
+}
 
 // MARK: - ViewModel
 extension QrLoginViewController {

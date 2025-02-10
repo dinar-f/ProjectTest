@@ -45,7 +45,7 @@ final class SpinnerLoader: UIView {
     }
 }
 
-    // MARK: - Public Properties
+// MARK: - Public Properties
 extension SpinnerLoader {
     enum Color {
         case white

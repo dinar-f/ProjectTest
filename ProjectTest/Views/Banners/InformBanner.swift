@@ -43,6 +43,7 @@ final class InformBanner: UIView {
         setupView(title: viewModel.title)
         setupLayout()
         configureAppearance()
+        isHidden = true
     }
     
     required init?(coder: NSCoder) {

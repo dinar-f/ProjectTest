@@ -7,14 +7,13 @@
 
 import UIKit
 
-class AuthorizationViewController: UIViewController {
+class AuthorizationViewController: BaseViewController {
+    
+    var correctAuthValues = (email: "Qwerty123@mail.ru", password: "Qwerty123")
+    var isValidValues = (email: false, password: false)
     
     private let scrollView = UIScrollView()
     private let scrollViewContent = UIView()
-    
-//    var isValidValues = (email: false, password: false)
-    
-    private let mainLabel = MainLabel(title: "С возвращением!", fontSize: 22, fontWeight: .semibold)
     
     private let subLabel: UILabel = {
         let label = UILabel()
@@ -43,12 +42,12 @@ class AuthorizationViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
+    private let mainLabel = MainLabel(title: "С возвращением!", fontSize: 22, fontWeight: .semibold)
     private let emailTextField = TextField(type: .email)
     private let passwordTextField = TextField(type: .password)
     private let informBanner = InformBanner(viewModel: .init(type: .error, title: "Некорректная почта или пароль"))
     private let passwordResetButton = UnstyledButton(title: "Забыли пароль?")
-    private let loginButton = BaseButton(title: "Войти")
+    private let loginButton = BaseButton(title: "Войти", type: .primary)
     private let samlButton = TextIconButton(iconName: "lock", title: "Войти с помощью SAML SSO")
     private let qrButton = TextIconButton(iconName: "qr", title: "Авторизация через QR")
     private let yandexButton = IconButton(iconName: "yandex")
@@ -78,62 +77,36 @@ class AuthorizationViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
         addSubviews()
         setupLayout()
         setupButtonTargets()
-        emailTextField.textFieldDelegate = self
-        passwordTextField.textFieldDelegate = self
+        emailTextField.delegate = self
+        passwordTextField.delegate = self
         loginButton.isEnabled = false
-        navigationItem.setHidesBackButton(true, animated: false)
     }
     
-    @objc private func openPasswordUpdateView() {
-        let passwordUpdateVC = PasswordUpdateViewController()
-        let navigationController = UINavigationController(rootViewController: passwordUpdateVC)
-        navigationController.modalPresentationStyle = .popover
-        present(navigationController, animated: true, completion: nil)
-    }
-    
-    @objc private func openQrLoginView() {
-        let qrLoginVC = QrLoginViewController()
-        let navigationController = UINavigationController(rootViewController: qrLoginVC)
-        navigationController.modalPresentationStyle = .popover
-        present(navigationController, animated: true, completion: nil)
-    }
-    
-    @objc private func openPopup() {
-        let popupVC = InformPopUp()
-        popupVC.modalPresentationStyle = .overCurrentContext
-        popupVC.modalTransitionStyle = .crossDissolve
-        present(popupVC, animated: true, completion: nil)
-    }
-    
-    @objc private func openVerifyScreen() {
-        let verifyVC = VerificationViewController()
-        if let navigationController = navigationController {
-            navigationController.pushViewController(verifyVC, animated: true)
-        }
-    }
-    
-    @objc private func openSamlLoginView() {
-        let samlLoginVC = SamlLoginViewController()
-        if let sheet = samlLoginVC.sheetPresentationController {
-            sheet.detents = [.custom { context in
-                return samlLoginVC.preferredContentSize.height
-            }]
-            sheet.prefersGrabberVisible = true
-        }
-        samlLoginVC.preferredContentSize = CGSize(width: view.bounds.width, height: 300)
-        present(samlLoginVC, animated: true, completion: nil)
+    func updateLoginButtonState() {
+        loginButton.isEnabled = isValidValues.email && isValidValues.password
     }
     
     private func setupButtonTargets() {
-//        passwordResetButton.addTarget(self, action: #selector(openPopup), for: .touchUpInside) // временно
         passwordResetButton.addTarget(self, action: #selector(openPasswordUpdateView), for: .touchUpInside)
         qrButton.addTarget(self, action: #selector(openQrLoginView), for: .touchUpInside)
         samlButton.addTarget(self, action: #selector(openSamlLoginView), for: .touchUpInside)
-        loginButton.addTarget(self, action: #selector(openVerifyScreen), for: .touchUpInside)
+        loginButton.addTarget(self, action: #selector(authorizationCheck), for: .touchUpInside)
+    }
+    
+    @objc func authorizationCheck() {
+        loginButton.isLoading = true
+        guard let enteredEmail = emailTextField.text,
+              let enteredPassword = passwordTextField.text else { return }
+    
+        if enteredEmail == correctAuthValues.email && enteredPassword == correctAuthValues.password{
+            informBanner.isHidden = true
+            openVerifyViewController()
+        } else {
+            informBanner.isHidden = false
+        }
     }
     
     func addSubviews() {
@@ -207,60 +180,91 @@ class AuthorizationViewController: UIViewController {
             serviceButtonsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             serviceButtonsStackView.topAnchor.constraint(equalTo: loginButtonsStackView.bottomAnchor, constant: 16),
             serviceButtonsStackView.bottomAnchor.constraint(equalTo: scrollViewContent.bottomAnchor, constant: -40),
-
         ])
     }
 }
 
-extension AuthorizationViewController: TextFieldProtocol {
-    func check() {
-        emailTextFieldErrorLabel.isHidden = emailTextField.isValid
-        passwordTextFieldErrorLabel.isHidden = passwordTextField.isValid
-        if emailTextField.isValid == true && passwordTextField.isValid == true {
-            loginButton.isEnabled = true
+// MARK: - Navigation Handlers
+extension AuthorizationViewController {
+    @objc private func openPasswordUpdateView() {
+        let passwordUpdateVC = PasswordUpdateViewController()
+        let navigationController = UINavigationController(rootViewController: passwordUpdateVC)
+        navigationController.modalPresentationStyle = .popover
+        present(navigationController, animated: true, completion: nil)
+    }
+    
+    @objc private func openQrLoginView() {
+        let qrLoginVC = QrLoginViewController()
+        let navigationController = UINavigationController(rootViewController: qrLoginVC)
+        navigationController.modalPresentationStyle = .popover
+        present(navigationController, animated: true, completion: nil)
+    }
+    
+    private func openVerifyViewController() {
+        let verifyViewController = VerifyViewController()
+        navigationController?.pushViewController(verifyViewController, animated: true)
+    }
+    
+    @objc private func openSamlLoginView() {
+        let samlLoginVC = SamlLoginViewController()
+        if let sheet = samlLoginVC.sheetPresentationController {
+            sheet.detents = [.custom { context in
+                return samlLoginVC.preferredContentSize.height
+            }]
+            sheet.prefersGrabberVisible = true
         }
+        samlLoginVC.preferredContentSize = CGSize(width: view.bounds.width, height: 300)
+        present(samlLoginVC, animated: true, completion: nil)
     }
 }
 
-//extension AuthorizationViewController: UITextFieldDelegate {
-//    
-//    func validateTextField(_ textField: UITextField, validationPattern: String, errorLabel: UILabel) -> Bool{
-//        guard let text = textField.text else {
-//            return false
-//        }
-//        let format = "SELF MATCHES %@"
-//        let isValid = NSPredicate(format: format, validationPattern).evaluate(with: text)
-//        errorLabel.isHidden = isValid
-//        return isValid
-//    }
-//    
-//    func updateLoginButtonState() {
-//        print(isValidValues)
-//    }
-//    
-//    func textFieldDidBeginEditing(_ textField: UITextField) {
-//        switch textField {
-//        case emailTextField:
-//            emailTextField.viewState = .active
-//        case passwordTextField:
-//            passwordTextField.viewState = .active
-//        default: break
-//        }
-//    }
-//    
-//    func textFieldDidEndEditing(_ textField: UITextField) {
-//        switch textField {
-//        case emailTextField:
-//            isValidValues.email = validateTextField(textField,
-//                                             validationPattern: "[a-zA-Z0-9._]+@[a-zA-Z0-9]+\\.[a-zA-Z]{2,4}",
-//                                             errorLabel: emailTextFieldErrorLabel)
-//            updateLoginButtonState()
-//        case passwordTextField:
-//            isValidValues.password = validateTextField(textField,
-//                                                validationPattern: "^(?=.*[A-Z])(?=.*\\d).{8,}$",
-//                                                errorLabel: passwordTextFieldErrorLabel)
-//            updateLoginButtonState()
-//        default: break
-//        }
-//    }
-//}
+// MARK: - TextField Delegate
+extension AuthorizationViewController: UITextFieldDelegate {
+    
+    func validateTextField(_ textField: UITextField, validationPattern: String, errorLabel: UILabel) -> Bool{
+        guard let text = textField.text else {
+            return false
+        }
+        let format = "SELF MATCHES %@"
+        let isValid = NSPredicate(format: format, validationPattern).evaluate(with: text)
+        errorLabel.isHidden = isValid
+        return isValid
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField == emailTextField {
+            passwordTextField.becomeFirstResponder()
+        } else if textField == passwordTextField {
+            textField.resignFirstResponder()
+        }
+        return true
+    }
+    
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        switch textField {
+        case emailTextField:
+            emailTextField.viewState = .active
+        case passwordTextField:
+            passwordTextField.viewState = .active
+        default: break
+        }
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        switch textField {
+        case emailTextField:
+            isValidValues.email = validateTextField(textField,
+                                                    validationPattern: "[a-zA-Z0-9._]+@[a-zA-Z0-9]+\\.[a-zA-Z]{2,4}",
+                                                    errorLabel: emailTextFieldErrorLabel)
+            emailTextField.viewState = isValidValues.email ? .normal : .error
+            updateLoginButtonState()
+        case passwordTextField:
+            isValidValues.password = validateTextField(textField,
+                                                       validationPattern: "^(?=.*[A-Z])(?=.*\\d).{8,}$",
+                                                       errorLabel: passwordTextFieldErrorLabel)
+            passwordTextField.viewState = isValidValues.password ? .normal : .error
+            updateLoginButtonState()
+        default: break
+        }
+    }
+}
